@@ -79,12 +79,21 @@ def get_complaints():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     # Join with users to see who submitted what
+    # query = """
+    #     SELECT c.id, u.username, c.description, c.category, c.status, c.created_at, c.conversation_log 
+    #     FROM complaints c 
+    #     JOIN users u ON c.student_id = u.id
+    #     ORDER BY c.created_at DESC
+    # """
+        # Join with users to see who submitted what, and include our new AI columns!
     query = """
-        SELECT c.id, u.username, c.description, c.category, c.status, c.created_at, c.conversation_log 
+        SELECT c.id, u.username, c.description, c.category, c.status, c.created_at, 
+               c.conversation_log, c.summary, c.sentiment
         FROM complaints c 
         JOIN users u ON c.student_id = u.id
         ORDER BY c.created_at DESC
     """
+
     cursor.execute(query)
     complaints = cursor.fetchall()
     cursor.close()
@@ -107,7 +116,7 @@ def chat_endpoint(request: ChatRequest):
     ai_message = result["messages"][-1].content
     
     # If the AI finished the interview, save to DB
-        # If the AI finished the interview, save to DB
+       
     if "THANK_YOU_REPORT_FILED" in ai_message:
         # Extract the full conversation as the final description
         full_desc = "\n".join([m.content for m in history if isinstance(m, HumanMessage)])
